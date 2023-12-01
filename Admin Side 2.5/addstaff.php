@@ -75,42 +75,42 @@ if (isset($_SESSION["username"])) {
 <!-- ... Your existing HTML code ... -->
 <!-- ... Existing HTML code ... -->
 <form method="post" action="">
-        <div class="container" style="color: var(--bs-black);">
-            <div class="row">
-                <div class="col-md-6">
-                    <small style="display: block; margin-bottom: 5px; margin-left: 30px;">Employee First Name</small>
-                    <input type="text" id="firstName" name="staff_first_name" placeholder="First Name" style="margin-left: 30px; width: calc(100% - 60px);">
-                </div>
+    <div class="container" style="color: var(--bs-black);">
+        <div class="row">
+            <div class="col-md-6">
+                <small style="display: block; margin-bottom: 5px; margin-left: 30px;">Employee First Name</small>
+                <input type="text" id="firstName" name="staff_first_name" placeholder="First Name" style="margin-left: 30px; width: calc(100% - 60px);" required>
+            </div>
 
-                <div class="col-md-6">
-                    <small style="display: block; margin-bottom: 5px; margin-left: 32px; border-bottom-color: rgb(0,0,0);">Employee Last Name</small>
-                    <input type="text" id="lastName" name="staff_last_name" placeholder="Last Name" style="margin-left: 32px; width: calc(100% - 64px);">
-                </div>
+            <div class="col-md-6">
+                <small style="display: block; margin-bottom: 5px; margin-left: 32px; border-bottom-color: rgb(0,0,0);">Employee Last Name</small>
+                <input type="text" id="lastName" name="staff_last_name" placeholder="Last Name" style="margin-left: 32px; width: calc(100% - 64px);" required>
+            </div>
 
-                <div class="col-md-6">
-                    <small style="display: block; margin-bottom: 5px; margin-left: 30px;">Employee Password</small>
-                    <input type="text" id="staffpassword" name="staff_password" placeholder="Input Password" style="margin-left: 30px; width: calc(100% - 60px);">
-                </div>
+            <div class="col-md-6">
+                <small style="display: block; margin-bottom: 5px; margin-left: 30px;">Employee Password</small>
+                <input type="text" id="staffpassword" name="staff_password" placeholder="Input Password" style="margin-left: 30px; width: calc(100% - 60px);" required>
+            </div>
 
-                <div class="col-md-6">
-                    <small style="display: block; margin-bottom: 5px; margin-left: 32px; border-bottom-color: rgb(0,0,0);">Employee ID</small>
-                    <input type="text" id="staffID" name="staff_id" placeholder="Input Number" style="margin-left: 32px; width: calc(100% - 64px);">
-                </div>
+            <div class="col-md-6">
+                <small style="display: block; margin-bottom: 5px; margin-left: 32px; border-bottom-color: rgb(0,0,0);">Employee ID</small>
+                <input type="text" id="staffID" name="staff_id" placeholder="Input Number" style="margin-left: 32px; width: calc(100% - 64px);" required>
+            </div>
 
-                <div class="col-md-6" style="display: flex; align-items: center;">
-                    <small style="display: block; margin-bottom: 5px; margin-left: 32px;">Employee Type</small>
-                    <div style="display: flex; gap: 10px; margin-left: 32px;">
-                        <label>
-                            <input type="radio" name="staff_user_type" value="administrator">Admin
-                            <input type="radio" name="staff_user_type" value="Librarian">Librarian
-                        </label>
-                        <label>
-                    <button class="btn btn-primary" type="submit" name="add_button">Add</button>
-                    <button class="btn btn-primary" type="submit" name="delete_button">delete</button>
+            <div class="col-md-6" style="display: flex; align-items: center;">
+                <small style="display: block; margin-bottom: 5px; margin-left: 32px;">Employee Type</small>
+                <div style="display: flex; gap: 10px; margin-left: 32px;">
+                    <label>
+                        <input type="radio" name="staff_user_type" value="administrator" required>Admin
+                        <input type="radio" name="staff_user_type" value="Librarian" required>Librarian
+                    </label>
                 </div>
             </div>
         </div>
-    </form>
+        <button class="btn btn-primary" type="submit" name="add_button">Add</button>
+        <button class="btn btn-primary" type="submit" name="delete_button">delete</button>
+    </div>
+</form>
 <!-- ... Other HTML content ... -->
 
 </body>
@@ -144,6 +144,12 @@ function logAction($action, $entityType, $entityID) {
     }
 }
 
+
+
+    
+
+// ... (your existing code above)
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['add_button'])) {
         // Retrieve form data for adding
@@ -153,102 +159,70 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $staff_id = $_POST['staff_id'];
         $staff_user_type = $_POST['staff_user_type'];
 
-        $checkExistingQuery = "SELECT COUNT(*) as count FROM librarian WHERE empid = ? UNION 
+        $checkExistingQuery = "SELECT COUNT(*) as count FROM librarian WHERE empid = ? 
+                                UNION 
                                 SELECT COUNT(*) as count FROM administrator WHERE empid = ?";
 
-        $stmt = $connection->prepare($checkExistingQuery);
-        $stmt->bind_param("ii", $staff_id, $staff_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $totalExisting = 0;
-
-
-        while ($row = $result->fetch_assoc()) {
-            $totalExisting += $row['count'];
-        }
-
-        if ($staff_user_type === 'administrator') {
-            if ($totalExisting > 0) {
-                echo "<script>alert('This Employee is already added as either librian or administrator')</script>";
-            } else {
-                $insertQuery = "INSERT INTO administrator (empid, administratorPassword) 
-                                SELECT empid, ? FROM tbemployee WHERE firstname = ? AND lastname = ?";
-
-                $stmt = $connection->prepare($insertQuery);
-                $stmt->bind_param("sss", $staff_password, $staff_first_name, $staff_last_name);
-                if ($stmt->execute()) {
-                    logAction('Add', ($staff_user_type === 'administrator') ? 'administrator' : 'librarian', $staff_id);
-                    echo "<script>alert('Administrator added successfully')</script>";
-                } else {
-                    echo "<script>alert('Failed to add administrator')</script>";
-                }
-                $stmt->close();
-            }
-
-        } elseif ($staff_user_type === 'Librarian') {
-            if ($totalExisting > 0) {
-                echo "<script>alert('This user is already added as either Librarian or administrator')</script>";
-            } else {
-                $insertQuery = "INSERT INTO librarian (empid, librarianPassword) 
-                                SELECT empid, ? FROM tbemployee WHERE firstname = ? AND lastname = ?";
-
-                $stmt = $connection->prepare($insertQuery);
-                $stmt->bind_param("sss", $staff_password, $staff_first_name, $staff_last_name);
-
-                if ($stmt->execute()) {
-                    logAction('Add', ($staff_user_type === 'Librarian') ? 'Librarian' : 'librarian', $staff_id);
-                    echo "<script>alert('Librian added successfully')</script>";
-                } else {
-                    echo "<script>alert('Failed to add Librarian')</script>";
-                }
-                $stmt->close();
-            }
-        }
-        
-    } elseif (isset($_POST['delete_button'])) {
-        // Retrieve form data for deleting
-        $staff_id = $_POST['staff_id'];
-        $staff_user_type = $_POST['staff_user_type'];
-    
-        $checkExistingQuery = "SELECT COUNT(*) as count FROM librarian WHERE empid = ?";
-        $checkExistingQuery = "SELECT COUNT(*) as count FROM administrator WHERE empid = ?";
         $stmtCheck = $connection->prepare($checkExistingQuery);
-        $stmtCheck->bind_param("i", $staff_id);
+        $stmtCheck->bind_param("ii", $staff_id, $staff_id);
         $stmtCheck->execute();
         $resultCheck = $stmtCheck->get_result();
         $rowCheck = $resultCheck->fetch_assoc();
-    
-        // Check if the staff ID exists before deletion
-        if ($rowCheck['count'] > 0) {
-            if ($staff_user_type === 'administrator') {
-                $deleteQuery = "DELETE FROM administrator WHERE empid = ?";
-                $stmt = $connection->prepare($deleteQuery);
-                $stmt->bind_param("i", $staff_id);
-    
-                if ($stmt->execute()) {
-                    logAction('Delete', 'administrator', $staff_id);
-                    echo "<script>alert('Administrator deleted successfully')</script>";
-                } else {
-                    echo "<script>alert('Failed to delete administrator')</script>";
-                }
-                $stmt->close();
-        
-            } elseif ($staff_user_type === 'Librarian') {
-                $deleteQuery = "DELETE FROM librarian WHERE empid = ?";
-                $stmt = $connection->prepare($deleteQuery);
-                $stmt->bind_param("i", $staff_id);
-    
-                if ($stmt->execute()) {
-                    logAction('Delete', 'Librarian', $staff_id);
-                    echo "<script>alert('Librarian deleted successfully')</script>";
-                } else {
-                    echo "<script>alert('Failed to delete staff')</script>";
-                }
-                $stmt->close();
-            }
+        $totalExisting = $rowCheck['count'];
+
+        if ($totalExisting > 0) {
+            echo "<script>alert('This Employee is already added as either librarian or administrator')</script>";
         } else {
-            echo "<script>alert('Employee ID does not exist. No action performed.')</script>";
+            if ($staff_user_type === 'administrator') {
+                $insertQuery = "INSERT INTO administrator (empid, administratorPassword) 
+                                SELECT empid, ? FROM tbemployee WHERE empid = ?";
+            } elseif ($staff_user_type === 'Librarian') {
+                $insertQuery = "INSERT INTO librarian (empid, librarianPassword) 
+                                SELECT empid, ? FROM tbemployee WHERE empid = ?";
+            } else {
+                echo "<script>alert('Invalid staff user type')</script>";
+                exit(); // Stop execution if user type is invalid
+            }
+
+            $stmtInsert = $connection->prepare($insertQuery);
+            $stmtInsert->bind_param("si", $staff_password, $staff_id);
+
+            if ($stmtInsert->execute()) {
+                logAction('Add', ($staff_user_type === 'administrator') ? 'administrator' : 'librarian', $staff_id);
+                echo "<script>alert('Staff added successfully')</script>";
+            } else {
+                echo "<script>alert('Failed to add staff')</script>";
+            }
+
+            $stmtInsert->close();
         }
+
+        $stmtCheck->close();
+    } elseif (isset($_POST['delete_button'])) {
+        // Retrieve form data for deletion
+        $staff_id = $_POST['staff_id'];
+        $staff_user_type = $_POST['staff_user_type'];
+
+        if ($staff_user_type === 'administrator') {
+            $deleteQuery = "DELETE FROM administrator WHERE empid = ?";
+        } elseif ($staff_user_type === 'Librarian') {
+            $deleteQuery = "DELETE FROM librarian WHERE empid = ?";
+        } else {
+            echo "<script>alert('Invalid staff user type')</script>";
+            exit(); // Stop execution if user type is invalid
+        }
+
+        $stmtDelete = $connection->prepare($deleteQuery);
+        $stmtDelete->bind_param("i", $staff_id);
+
+        if ($stmtDelete->execute()) {
+            logAction('Delete', ($staff_user_type === 'administrator') ? 'administrator' : 'librarian', $staff_id);
+            echo "<script>alert('Staff deleted successfully')</script>";
+        } else {
+            echo "<script>alert('Failed to delete staff')</script>";
+        }
+
+        $stmtDelete->close();
     }
 }
-?>           
+?>

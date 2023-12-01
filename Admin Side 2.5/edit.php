@@ -1,4 +1,33 @@
 <?php
+// Include the logAction function here
+
+function logAction($action, $entityType, $entityID) {
+    global $conn; // Use the connection variable you have established
+
+    // SQL query to insert into the updatelog table
+    $logSql = "INSERT INTO updatelog (action, entityType, entityID, timestamp) VALUES (?, ?, ?, NOW())";
+    
+    // Prepare the statement
+    $stmt_log = $conn->prepare($logSql);
+
+    if ($stmt_log) {
+        // Bind parameters
+        $stmt_log->bind_param("ssi", $action, $entityType, $entityID);
+        
+        // Execute the statement
+        if ($stmt_log->execute()) {
+            echo "<script>alert('Action logged successfully')</script>";
+        } else {
+            echo "<script>alert('Error logging action: " . $conn->error . "')</script>";
+        }
+
+        // Close the statement
+        $stmt_log->close();
+    } else {
+        echo "<script>alert('Error preparing log statement: " . $conn->error . "')</script>";
+    }
+}
+
 $host = 'localhost';
 $database = 'db_nt3102';
 $username = 'root';
@@ -29,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
     $bookID = $_GET["bookID"];
 
+    // Fetch data from the database without logging "VIEW"
     $sql = "SELECT book.*, CONCAT(author.authorFn, ' ', author.authorLn) AS authorName, publisher.publisherName 
             FROM book
             LEFT JOIN author ON book.authorID = author.authorID
@@ -82,6 +112,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             break;
         }
 
+        // Log the action
+        logAction("UPDATE", "book", $bookID);
+
         $successMessage = "Book updated correctly";
 
         // Fetch updated data to display in the form
@@ -114,6 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 }
 
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

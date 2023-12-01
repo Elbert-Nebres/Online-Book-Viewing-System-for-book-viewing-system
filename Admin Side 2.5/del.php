@@ -1,4 +1,31 @@
 <?php
+function logAction($action, $entityType, $entityID) {
+    global $conn; // Use the connection variable you have established
+
+    // SQL query to insert into the updatelog table
+    $logSql = "INSERT INTO updatelog (action, entityType, entityID, timestamp) VALUES (?, ?, ?, NOW())";
+    
+    // Prepare the statement
+    $stmt_log = $conn->prepare($logSql);
+
+    if ($stmt_log) {
+        // Bind parameters
+        $stmt_log->bind_param("ssi", $action, $entityType, $entityID);
+        
+        // Execute the statement
+        if ($stmt_log->execute()) {
+            echo "<script>alert('Action logged successfully')</script>";
+        } else {
+            echo "<script>alert('Error logging action: " . $conn->error . "')</script>";
+        }
+
+        // Close the statement
+        $stmt_log->close();
+    } else {
+        echo "<script>alert('Error preparing log statement: " . $conn->error . "')</script>";
+    }
+}
+
 if (isset($_GET["bookID"])) {
     $bookID = $_GET["bookID"];
 
@@ -17,6 +44,9 @@ if (isset($_GET["bookID"])) {
         $row = $result->fetch_assoc();
         $authorID = $row['authorID'];
         $publisherID = $row['publisherID'];
+
+        // Log the action before deleting the book
+        logAction("DELETE", "book", $bookID);
 
         // Delete the book
         $sqlDeleteBook = "DELETE FROM book WHERE bookID=$bookID";

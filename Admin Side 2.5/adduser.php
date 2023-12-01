@@ -251,12 +251,12 @@ if (isset($_SESSION["username"])) {
 <div class="container" style="color: var(--bs-black);">
 <form method="post" action="">
     <div class="col-md-6">
-        <small style="display: block; margin-bottom: 5px; margin-left: 30px;">Staff First Name</small>
+        <small style="display: block; margin-bottom: 5px; margin-left: 30px;">User First Name</small>
         <input type="text" name="first_name" placeholder="First Name" style="margin-left: 30px; width: calc(100% - 60px);">
     </div>
 
     <div class="col-md-6">
-        <small style="display: block; margin-bottom: 5px; margin-left: 32px; border-bottom-color: rgb(0,0,0);">Staff Last Name</small>
+        <small style="display: block; margin-bottom: 5px; margin-left: 32px; border-bottom-color: rgb(0,0,0);">User Last Name</small>
         <input type="text" id="lastName" name="last_name" placeholder="Last Name" style="margin-left: 32px; width: calc(100% - 64px);">
     </div>
     <div class="col-md-6">

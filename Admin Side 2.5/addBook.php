@@ -1,5 +1,32 @@
-
 <?php
+function logAction($action, $entityType, $entityID) {
+    global $conn; // Use the connection variable you have established
+
+    // SQL query to insert into the updatelog table
+    $logSql = "INSERT INTO updatelog (action, entityType, entityID, timestamp) VALUES (?, ?, ?, NOW())";
+    
+    // Prepare the statement
+    $stmt_log = $conn->prepare($logSql);
+
+    if ($stmt_log) {
+        // Bind parameters
+        $stmt_log->bindParam(1, $action, PDO::PARAM_STR);
+        $stmt_log->bindParam(2, $entityType, PDO::PARAM_STR);
+        $stmt_log->bindParam(3, $entityID, PDO::PARAM_INT);
+        
+        // Execute the statement
+        if ($stmt_log->execute()) {
+            echo "<script>alert('Action logged successfully')</script>";
+        } else {
+            echo "<script>alert('Error logging action: " . $conn->error . "')</script>";
+        }
+
+        // Close the statement
+        $stmt_log->closeCursor();
+    } else {
+        echo "<script>alert('Error preparing log statement: " . $conn->error . "')</script>";
+    }
+}
 $host = 'localhost';
 $database = 'db_nt3102';
 $username = 'root';
@@ -54,6 +81,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Retrieve the newly generated author ID
             $authorID = $dbAuthor->lastInsertId();
 
+            // Log the action
+            logAction("INSERT", "author", $authorID);
+
             $successAuthor = "New author added successfully with ID: $authorID";
             echo "
             <div class='alert alert-success alert-dismissible fade show' role='alert'>
@@ -74,6 +104,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // Retrieve the newly generated author ID
                 $authorID = $dbAuthor->lastInsertId();
+
+                // Log the action
+                logAction("INSERT", "author", $authorID);
+
                 $errorAuthorFnLn = "Error: Unable to extract first and last name from authorName.";
             } else {
                 // Handle the case where explode did not return the expected array
@@ -100,6 +134,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Retrieve the newly generated publisher ID
             $publisherID = $dbPublisher->lastInsertId();
 
+            // Log the action
+            logAction("INSERT", "publisher", $publisherID);
+
             $successPublisher = "New publisher added successfully with ID: $publisherID";
             echo "
             <div class='alert alert-success alert-dismissible fade show' role='alert'>
@@ -115,6 +152,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Retrieve the newly generated publisher ID
             $publisherID = $dbPublisher->lastInsertId();
+
+            // Log the action
+            logAction("INSERT", "publisher", $publisherID);
         }
 
         // Insert a new record
@@ -139,6 +179,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>
             </div>
             ";
+
+            // Log the action
+            logAction("INSERT", "book", $conn->lastInsertId());
         } else {
             $errorSave = 'There were errors while saving the data.';
             echo "
